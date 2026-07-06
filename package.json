@@ -1,7 +1,7 @@
 {
   "name": "obsidian-report-harvester",
   "version": "0.1.0",
-  "description": "Harvest structured Markdown reports into schemas, front matter, templates, and XLSX exports in Obsidian.",
+  "description": "Harvest structured Markdown reports into front matter and XLSX exports from Obsidian execution notes.",
   "main": "main.js",
   "scripts": {
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs",

@@ -1,19 +1,19 @@
-# 보고서 Front Matter 동기화 실행
+# 보고서 XLSX 추출 실행
 
 ```yaml
 report_harvester:
-  action: sync_frontmatter
+  action: export_xlsx
   target:
-    folder: "example/input"
+    folder: "example/reports"
     include:
       - "*.md"
     exclude:
       - "readme*.md"
       - "*_실행.md"
-  backup: true
+  output_xlsx: "example/output/report_table.xlsx"
 
   schema:
-    report_type_A:
+    sample_report:
       heading_level: 3
       headers:
         - header: 메타데이터
@@ -25,15 +25,8 @@ report_harvester:
             - column: 시료
               key: 시료
               include_children: true
-            - column: 유형 1
-              key: 유형 1
-            - column: 유형 2
-              key: 유형 2
-            - column: 유형 3
-              key: 유형 3
-            - column: 일정
-              key: 일정
-              include_children: true
+            - column: 상태
+              key: 상태
 
         - header: 목적
           export:

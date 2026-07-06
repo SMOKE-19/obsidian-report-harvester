@@ -1,284 +1,35 @@
-# Markdown 보고서 자동화 목적 정리
+# Report Harvester
 
-## 목적
+Report Harvester는 Obsidian의 Markdown 보고서를 실행 노트 기반으로 읽어 XLSX 표로 내보내거나 YAML front matter에 동기화하는 플러그인이다.
 
-이 작업의 목적은 사람이 Obsidian/Markdown으로 작성한 보고서를 정해진 규칙에 따라 다시 활용할 수 있게 만드는 것이다.
+별도 `report_schema.yaml`을 직접 편집하는 흐름이 아니라, Obsidian 노트 안의 YAML 코드블럭을 실행 설정으로 사용한다.
 
-핵심 흐름은 다음 세 가지다.
+## 주요 기능
 
-1. 서식 Markdown에서 Excel 추출 규칙 YAML 초안을 만든다.
-2. 작성된 Markdown 보고서들을 읽어 Excel 표로 변환한다.
-3. 작성된 Markdown 보고서 상단에 YAML front matter를 자동 입력하거나 갱신한다.
+- 현재 실행 노트의 `report_harvester` YAML 코드블럭 실행
+- 보고서 또는 보고서 템플릿에서 XLSX 추출 실행 노트 초안 생성
+- 보고서 또는 보고서 템플릿에서 front matter 동기화 실행 노트 초안 생성
+- `### 헤더`와 bullet list 기반 값 추출
+- 링크/이미지 마크업 정리 및 링크 컬럼의 URL 보존
+- Obsidian 언어 설정이 한국어이면 한국어 명령명을 먼저 표시
 
-LLM 없이도 반복 실행할 수 있도록 Python 스크립트와 `report_schema.yaml` 규칙 파일로 동작하게 구성했다.
+## 명령 팔레트
 
-## 기본 개념
-
-### Markdown 보고서
-
-보고서는 `### 헤더`와 bullet list를 기준으로 읽는다.
-
-예:
-
-```md
-### 메타데이터
-
-- 보고서 제목: 보고서1
-- 담당자: 담당자1
-- 시료:
-  - 시료1
-    - 시료 설명
-
-### 결과
-
-- 결과 항목
-  - 세부 결과
-```
-
-### report_schema.yaml
-
-`report_schema.yaml`은 Excel 또는 front matter로 뽑을 값을 지정하는 추출 규칙 파일이다.
-
-중요한 키는 다음과 같다.
-
-- `header`: Markdown 문서의 `### 헤더` 이름
-- `export`: 해당 헤더에서 추출할 항목 목록
-- `key`: 특정 bullet key의 값만 추출
-- `content: all`: 해당 헤더 아래 내용을 통째로 추출
-- `include_children: true`: 하위 bullet까지 같은 셀/값에 포함
-- `column`: Excel 컬럼명 또는 front matter key 이름
-
-예:
-
-```yaml
-- header: 메타데이터
-  export:
-    - column: 보고서 제목
-      key: 보고서 제목
-    - column: 시료
-      key: 시료
-      include_children: true
-
-- header: 결과
-  export:
-    - column: 결과
-      content: all
-```
-
-## 스크립트 역할
-
-### md_template_to_schema.py
-
-서식 Markdown을 읽어서 `report_schema.yaml` 초안을 만든다.
-
-사용 시점:
-
-- 새 보고서 서식을 만들었을 때
-- 서식의 `### 헤더`나 최상위 bullet key가 바뀌었을 때
-- 사람이 YAML을 처음부터 쓰지 않고 초안을 만들고 싶을 때
-
-실행:
-
-```powershell
-python md_template_to_schema.py --template report_type_A.md --output report_schema.yaml
-```
-
-생성된 YAML에서 불필요한 `export` 항목만 지우면 바로 사용할 수 있다.
-
-### md_reports_to_xlsx.py
-
-작성된 Markdown 보고서들을 읽고 Excel 파일을 만든다.
-
-입력:
-
-- 현재 폴더의 `.md` 파일들
-- `report_schema.yaml`
-
-출력:
-
-- `report_table.xlsx`
-
-실행:
-
-```powershell
-python md_reports_to_xlsx.py
-```
-
-Excel에서는 Markdown 파일 하나가 한 행이 된다.
-
-기본 컬럼:
-
-- `파일 생성 시각`
-- `파일명`
-- `report_schema.yaml`에 지정한 export 컬럼들
-
-### schema_to_blank_md.py
-
-`report_schema.yaml`을 바탕으로 빈 Markdown 보고서 양식을 만든다.
-
-사용 시점:
-
-- 현재 추출 규칙에 맞는 빈 입력 파일을 만들고 싶을 때
-- `report_schema.yaml` 기반으로 간단한 작성 템플릿을 만들 때
-
-실행:
-
-```powershell
-python schema_to_blank_md.py --schema report_schema.yaml --output blank_report.md
-```
-
-### md_reports_to_frontmatter.py
-
-작성된 Markdown 보고서를 읽고, 추출 값을 문서 상단 YAML front matter에 삽입하거나 갱신한다.
-
-사용 시점:
-
-- Obsidian 속성으로 보고서 값을 검색/정렬/필터링하고 싶을 때
-- 본문 bullet 값을 front matter에도 동기화하고 싶을 때
-
-단일 파일 실행:
-
-```powershell
-python md_reports_to_frontmatter.py --input report_type_A_test.md
-```
-
-전체 `.md` 파일 실행:
-
-```powershell
-python md_reports_to_frontmatter.py
-```
-
-기본적으로 `.bak` 백업 파일을 만든다.
-
-백업 없이 실행:
-
-```powershell
-python md_reports_to_frontmatter.py --input report_type_A_test.md --no-backup
-```
-
-## 링크와 이미지 처리
-
-Excel/front matter 추출 시 기본적으로 bullet 안의 이미지와 링크는 제거한다.
-
-제거 대상 예:
-
-```md
-![[image.png]]
-![alt](image.png)
-[[문서]]
-[사이트](https://example.com)
-https://example.com
-```
-
-단, 추출 대상 `key` 또는 `column` 이름에 `link`나 `링크`가 들어가면 URL은 보존한다.
-
-예:
-
-```md
-- 참고 link: [사이트](https://example.com) https://example.org
-```
-
-추출 결과:
-
-```text
-https://example.com https://example.org
-```
-
-이미지 링크는 `link` 키여도 제거한다.
-
-## 전체 흐름 예시
-
-### 1. 서식에서 YAML 초안 생성
-
-```powershell
-python md_template_to_schema.py --template report_type_A.md --output report_schema.yaml
-```
-
-### 2. YAML에서 불필요한 export 항목 삭제
-
-예를 들어 `유형 3`이 필요 없으면 해당 블록을 지운다.
-
-```yaml
-- column: 유형 3
-  key: 유형 3
-```
-
-### 3. 작성된 Markdown들을 Excel로 변환
-
-```powershell
-python md_reports_to_xlsx.py
-```
-
-### 4. 필요하면 front matter 삽입
-
-```powershell
-python md_reports_to_frontmatter.py --input report_type_A_test.md
-```
-
-## 현재 파일 구성
-
-- `manifest.json`: Obsidian 플러그인 메타데이터
-- `main.ts`: 플러그인 진입점과 명령 팔레트 액션 연결
-- `src/schema.ts`: Markdown 서식에서 `report_schema.yaml` 생성, schema 로딩
-- `src/markdownParser.ts`: `### 헤더`와 bullet list 파싱, 링크/이미지 제거
-- `src/extractor.ts`: schema 기준으로 Markdown 보고서 값을 행 데이터로 추출
-- `src/frontmatter.ts`: 추출 값을 YAML front matter에 삽입/갱신
-- `src/template.ts`: schema 기준 빈 Markdown 보고서 생성
-- `src/xlsxExport.ts`: 추출 행 데이터를 `.xlsx`로 생성
-- `src/runConfig.ts`: 실행 노트의 YAML 코드블럭 파싱/검증
-- `src/runNote.ts`: 보고서 Markdown에서 실행 노트 초안 생성
-- `src/settings.ts`: Obsidian 설정 탭
-- `src/i18n.ts`: Obsidian 언어 설정에 따른 영어/한국어 병기 문구
-- `main.js`: 빌드된 Obsidian 플러그인 실행 파일
-- `styles.css`: 플러그인 스타일 파일
-- `report_type_A.md`: 보고서 A 서식 Markdown
-- `report_type_A_test.md`: 실제 입력 예시 Markdown
-- `report_schema.yaml`: 추출 규칙 YAML
-- `md_template_to_schema.py`: 서식 Markdown에서 YAML 초안 생성
-- `md_reports_to_xlsx.py`: Markdown 보고서들을 Excel로 변환
-- `schema_to_blank_md.py`: YAML에서 빈 Markdown 생성
-- `md_reports_to_frontmatter.py`: Markdown에 YAML front matter 삽입/갱신
-- `report_table.xlsx`: 생성된 Excel 결과물
-
-## Obsidian 플러그인 구조
-
-기존 Python 스크립트는 `python/` 폴더에 보존하고, 실제 Obsidian 플러그인은 TypeScript 단독 구조로 구현한다.
-
-설정값:
-
-- `기본 포함 패턴 (Default include patterns)`: 새 실행 노트에 입력할 `target.include` 기본값
-- `기본 제외 패턴 (Default exclude patterns)`: 새 실행 노트에 입력할 `target.exclude` 기본값
-- `기본 XLSX 출력 폴더 (Default XLSX output folder)`: XLSX 실행 노트 초안의 출력 폴더
-- `front matter 동기화 전 백업 (Back up before front matter sync)`: front matter 실행 노트 초안의 `backup` 기본값
-
-명령 팔레트:
-
-Obsidian 언어 설정이 한국어면 한국어가 먼저 표시되고, 그 외 언어에서는 영어가 먼저 표시된다.
+한국어 환경에서는 한국어가 먼저, 그 외 언어에서는 영어가 먼저 표시된다.
 
 - `Report Harvester: 현재 실행 노트 실행 (Report Harvester: Run current execution note)`
 - `Report Harvester: 현재 보고서에서 XLSX 실행 노트 생성 (Report Harvester: Create XLSX execution note from current report)`
 - `Report Harvester: 현재 보고서에서 front matter 실행 노트 생성 (Report Harvester: Create front matter execution note from current report)`
 
-한국어 환경 검색어:
+## 실행 노트 형식
 
-- `Report Harvester`
-- `스키마`
-- `빈 보고서`
-- `XLSX`
-- `front matter`
-- `동기화`
-
-### 실행 노트 기반 흐름
-
-Obsidian에서 직접 편집하기 어려운 별도 `report_schema.yaml` 대신, Markdown 실행 노트 안의 YAML 코드블럭으로 추출 작업을 정의할 수 있다.
-
-Excel 추출 실행 노트 예:
+실행 노트는 Markdown 문서이며, 내부에 `yaml` 코드블럭을 하나 둔다.
 
 ```yaml
 report_harvester:
   action: export_xlsx
   target:
-    folder: "example/input"
+    folder: "example/reports"
     include:
       - "*.md"
     exclude:
@@ -287,55 +38,98 @@ report_harvester:
   output_xlsx: "example/output/report_table.xlsx"
 
   schema:
-    report_type_A:
+    sample_report:
       heading_level: 3
       headers:
         - header: 메타데이터
           export:
             - column: 보고서 제목
               key: 보고서 제목
-```
-
-front matter 동기화 실행 노트 예:
-
-```yaml
-report_harvester:
-  action: sync_frontmatter
-  target:
-    folder: "example/input"
-    include:
-      - "*.md"
-    exclude:
-      - "readme*.md"
-      - "*_실행.md"
-  backup: true
-
-  schema:
-    report_type_A:
-      heading_level: 3
-      headers:
-        - header: 메타데이터
+            - column: 담당자
+              key: 담당자
+        - header: 결과
           export:
-            - column: 보고서 제목
-              key: 보고서 제목
+            - column: 결과
+              content: all
 ```
 
-실행 노트 생성 흐름:
+`action` 값:
 
-1. 보고서 또는 보고서 템플릿 Markdown을 연다.
-2. `Report Harvester: 현재 보고서에서 XLSX 실행 노트 생성` 또는 `Report Harvester: 현재 보고서에서 front matter 실행 노트 생성`을 실행한다.
-3. 생성된 실행 노트의 `target`, `output_xlsx`, `schema`를 필요에 맞게 수정한다.
-4. 실행 노트를 연 상태에서 `Report Harvester: 현재 실행 노트 실행`을 실행한다.
+- `export_xlsx`: 대상 보고서를 XLSX로 내보낸다.
+- `sync_frontmatter`: 대상 보고서의 front matter를 갱신한다.
 
-빌드:
+`target` 값:
+
+- `folder`: Vault 기준 대상 폴더
+- `include`: 포함할 파일 패턴
+- `exclude`: 제외할 파일 패턴
+
+## 예제
+
+현재 저장소의 예제는 실행 노트 기반 흐름만 보여준다.
+
+- [sample-report-1.md](example/reports/sample-report-1.md)
+- [sample-report-2.md](example/reports/sample-report-2.md)
+- [export-xlsx.md](example/run-notes/export-xlsx.md)
+- [sync-frontmatter.md](example/run-notes/sync-frontmatter.md)
+
+예제 사용 순서:
+
+1. Obsidian vault에 플러그인을 설치한다.
+2. `example/run-notes/export-xlsx.md`를 연다.
+3. 명령 팔레트에서 `Report Harvester: 현재 실행 노트 실행`을 실행한다.
+4. `example/output/report_table.xlsx`가 생성되는지 확인한다.
+5. `example/run-notes/sync-frontmatter.md`를 열고 같은 명령을 실행해 보고서 front matter 동기화를 확인한다.
+
+## 설정
+
+설정 탭은 실행 노트 초안 생성에 들어갈 기본값만 관리한다.
+
+- `기본 포함 패턴`: 새 실행 노트의 `target.include`
+- `기본 제외 패턴`: 새 실행 노트의 `target.exclude`
+- `기본 XLSX 출력 폴더`: 새 XLSX 실행 노트의 출력 폴더
+- `front matter 동기화 전 백업`: 새 front matter 실행 노트의 `backup`
+
+## 프로젝트 구조
+
+```text
+.
+├── main.ts
+├── main.js
+├── manifest.json
+├── styles.css
+├── src/
+│   ├── extractor.ts
+│   ├── frontmatter.ts
+│   ├── i18n.ts
+│   ├── markdownParser.ts
+│   ├── runConfig.ts
+│   ├── runNote.ts
+│   ├── schema.ts
+│   ├── settings.ts
+│   ├── types.ts
+│   └── xlsxExport.ts
+└── example/
+    ├── reports/
+    └── run-notes/
+```
+
+`main.js`는 Obsidian 배포용 번들이다. GitHub 언어 통계에서는 generated file로 제외한다.
+
+## 개발
 
 ```bash
 npm install
 npm run build
+npm audit
 ```
 
-배포 파일:
+표준 Obsidian 배포 파일:
 
 - `manifest.json`
 - `main.js`
 - `styles.css`
+
+## 보관된 이전 자료
+
+초기 Python 스크립트와 이전 예제는 `example.old/` 아래에 로컬 보관한다. 이 폴더는 `.gitignore`에 포함되어 GitHub에는 올리지 않는다.

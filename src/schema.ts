@@ -1,21 +1,5 @@
-import * as yaml from "js-yaml";
 import { cleanBasicText, splitSections } from "./markdownParser";
-import { HeaderSchema, ReportSchema, SchemaDocument } from "./types";
-
-export function loadSchemaDocument(schemaText: string): SchemaDocument {
-  const parsed = yaml.load(schemaText);
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Schema YAML must be an object.");
-  }
-  return parsed as SchemaDocument;
-}
-
-export function firstReportSchema(schemaText: string): [string, ReportSchema] {
-  const doc = loadSchemaDocument(schemaText);
-  const key = Object.keys(doc)[0];
-  if (!key) throw new Error("Schema YAML is empty.");
-  return [key, doc[key]];
-}
+import { HeaderSchema, SchemaDocument } from "./types";
 
 export function buildSchemaFromTemplate(templateText: string, reportKey: string): SchemaDocument {
   const sections = splitSections(templateText, 3);
@@ -29,18 +13,6 @@ export function buildSchemaFromTemplate(templateText: string, reportKey: string)
       headers
     }
   };
-}
-
-export function dumpSchema(schema: SchemaDocument): string {
-  return [
-    "# Markdown 보고서에서 Excel로 내보낼 컬럼 규칙입니다.",
-    "# 불필요한 export 항목은 지우고, 통째로 내보낼 헤더는 content: all을 유지합니다.",
-    yaml.dump(schema, {
-      noRefs: true,
-      lineWidth: 1000,
-      sortKeys: false
-    })
-  ].join("\n");
 }
 
 function buildHeaderExport(header: string, lines: string[], firstHeader: boolean): HeaderSchema {

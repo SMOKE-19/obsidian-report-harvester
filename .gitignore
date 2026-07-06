@@ -3,3 +3,4 @@ node_modules/
 *.log
 *.bak
 example/output/*.xlsx
+example.old/

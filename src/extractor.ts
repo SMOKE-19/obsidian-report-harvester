@@ -1,14 +1,8 @@
 import { formatNestedLines, normalizeBullet, cleanText, splitSections } from "./markdownParser";
-import { firstReportSchema } from "./schema";
 import { ExportSpec, MarkdownReportInput, ReportSchema, Row, SchemaDocument } from "./types";
 
 export const CREATED_AT_COLUMN = "파일 생성 시각";
 export const FILENAME_COLUMN = "파일명";
-
-export function exportSpecsFromSchema(schemaText: string): ExportSpec[] {
-  const [, reportSchema] = firstReportSchema(schemaText);
-  return exportSpecsFromReportSchema(reportSchema);
-}
 
 export function exportSpecsFromSchemaDocument(schema: SchemaDocument): ExportSpec[] {
   const key = Object.keys(schema)[0];
