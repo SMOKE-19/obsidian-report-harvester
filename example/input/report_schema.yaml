@@ -1,0 +1,39 @@
+# Markdown 보고서에서 Excel로 내보낼 컬럼 규칙입니다.
+# header는 서식 문서의 ### 헤더 이름과 같아야 합니다.
+report_type_A:
+  heading_level: 3
+
+  headers:
+    - header: 메타데이터
+      export:
+        - column: 보고서 제목
+          key: 보고서 제목
+        - column: 담당자
+          key: 담당자
+        - column: 시료
+          key: 시료
+          include_children: true
+        - column: 유형 1
+          key: 유형 1
+        - column: 유형 2
+          key: 유형 2
+        - column: 유형 3
+          key: 유형 3
+        - column: 일정
+          key: 일정
+          include_children: true
+
+    - header: 목적
+      export:
+        - column: 목적
+          content: all
+
+    - header: 결과
+      export:
+        - column: 결과
+          content: all
+
+    - header: 타임라인
+      export:
+        - column: 타임라인
+          content: all

@@ -1,0 +1,31 @@
+{
+  "name": "obsidian-report-harvester",
+  "version": "0.1.0",
+  "description": "Harvest structured Markdown reports into schemas, front matter, templates, and XLSX exports in Obsidian.",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs",
+    "dev": "node esbuild.config.mjs --watch"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "markdown",
+    "xlsx",
+    "yaml"
+  ],
+  "author": "SMOKE-19",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.14.10",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.28.1",
+    "obsidian": "^1.7.2",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "write-excel-file": "^4.1.1"
+  }
+}
