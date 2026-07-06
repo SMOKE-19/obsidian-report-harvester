@@ -95,9 +95,11 @@ report_harvester:
 ```text
 .
 ├── main.ts
-├── main.js
 ├── manifest.json
 ├── styles.css
+├── .github/
+│   └── workflows/
+│       └── release.yml
 ├── src/
 │   ├── extractor.ts
 │   ├── frontmatter.ts
@@ -114,7 +116,7 @@ report_harvester:
     └── run-notes/
 ```
 
-`main.js`는 Obsidian 배포용 번들이다. GitHub 언어 통계에서는 generated file로 제외한다.
+`main.js`는 Obsidian 배포용 번들이며 로컬 빌드 또는 GitHub Actions에서 생성된다. 생성 파일이므로 Git에는 커밋하지 않는다.
 
 ## 개발
 
@@ -124,11 +126,15 @@ npm run build
 npm audit
 ```
 
+`npm run build`를 실행하면 로컬에 `main.js`가 생성된다. 이 파일은 `.gitignore` 대상이다.
+
 표준 Obsidian 배포 파일:
 
 - `manifest.json`
 - `main.js`
 - `styles.css`
+
+GitHub Release 산출물은 `v0.1.0` 같은 버전 태그를 push하면 `.github/workflows/release.yml`이 생성한다. Release에는 zip 패키지와 개별 `manifest.json`, `main.js`, `styles.css` 파일이 첨부된다.
 
 ## 보관된 이전 자료
 
