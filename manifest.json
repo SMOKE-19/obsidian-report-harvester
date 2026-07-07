@@ -1,9 +1,9 @@
 {
   "id": "report-harvester",
   "name": "Report Harvester",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.5.0",
-  "description": "Extract structured Markdown reports into YAML schemas, front matter, blank templates, and XLSX tables.",
+  "description": "Harvest structured Markdown reports into front matter and XLSX exports from execution notes.",
   "author": "SMOKE-19",
   "authorUrl": "https://github.com/SMOKE-19",
   "isDesktopOnly": false

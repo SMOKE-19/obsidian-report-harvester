@@ -1,6 +1,6 @@
 {
   "name": "obsidian-report-harvester",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Harvest structured Markdown reports into front matter and XLSX exports from Obsidian execution notes.",
   "main": "main.js",
   "scripts": {
